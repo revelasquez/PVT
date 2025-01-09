@@ -254,6 +254,7 @@ Route::group([
             Route::get('loan/{loan}/note','Api\V1\LoanController@get_notes');
             Route::get('loan/{loan}/flow','Api\V1\LoanController@get_flow');
             Route::get('loan/{loan}/print/plan','Api\V1\LoanController@print_plan');
+            Route::post('regenerate_plan/{loan}', 'Api\V1\LoanController@regenerate_plan');
             Route::apiResource('note','Api\V1\NoteController')->only('show');
             Route::get('procedure_type/{procedure_type}/loan_destiny', 'Api\V1\ProcedureTypeController@get_loan_destinies');
             Route::get('loan/{loan}/observation','Api\V1\LoanController@get_observations');

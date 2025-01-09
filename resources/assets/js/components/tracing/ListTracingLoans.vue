@@ -178,6 +178,49 @@
                   <span>Liberar usuario del trámite</span>
                 </v-tooltip>
 
+                <v-dialog
+                  v-model="dialog_regenerate_plan"
+                  max-width="500">
+                    <v-card>
+                    <v-card-title>
+                      Esta seguro de regenerar el plan de pagos?
+                    </v-card-title>
+                    <v-card-actions>
+                      <v-spacer></v-spacer>
+                      <v-btn
+                        color="red darken-1"
+                        text
+                        @click="dialog_regenerate_plan = false"
+                      >
+                        Cancelar
+                      </v-btn>
+                      <v-btn
+                        color="green darken-1"
+                        text
+                        @click.stop="RegenerateLoanPlan(item.id_loan, item.code_loan)"
+                      >
+                        Aceptar
+                      </v-btn>
+                    </v-card-actions>
+                  </v-card>
+                </v-dialog>
+
+                <v-tooltip bottom v-if="permissionSimpleSelected.includes('regenerate-plan-payment-loans')">
+                  <template v-slot:activator="{ on }" >
+                    <v-btn
+                      v-show="item.disbursement_date_loan != null"
+                      icon
+                      small
+                      v-on="on"
+                      color="error"
+                      @click.stop="dialog_regenerate_plan=true"
+                    >
+                      <v-icon>mdi-autorenew</v-icon>
+                    </v-btn>
+                  </template>
+                  <span>regenerar plan de pagos</span>
+                </v-tooltip>
+
                 <v-menu offset-y close-on-content-click>
                   <template v-slot:activator="{ on }">
                     <v-btn icon color="primary" dark v-on="on">
@@ -240,6 +283,7 @@ export default {
         shortened_sub_modality_loan: "",
         state_loan: "",
       },
+      dialog_regenerate_plan:false,
       headers: [
         { text: 'Dpto', value: 'city_loan',input:'' , menu:false,type:"text",class: ['normal', 'white--text','text-md-center'],width: '10%', sortable: false},
         { text: 'Área', value: 'name_role_loan',input:'' , menu:false,type:"text",class: ['normal', 'white--text','text-md-center'],width: '5%',sortable: false},
@@ -451,6 +495,27 @@ export default {
       } catch (e) {
         console.log(e)
         this.toastr.error("Ocurrió un error en la liberación del trámite...")
+        this.loading_table = false
+      }
+      this.loading_table = false
+    },
+    async RegenerateLoanPlan(id_loan, code_loan){
+      try {
+        this.dialog_regenerate_plan = false
+          this.loading_table = true
+            let res = await axios.post(`regenerate_plan/${id_loan}`);
+            this.refreshKardexTable++
+            this.toastr.success("Se regenero el plan de pagos del tramite "+ code_loan )
+            let res2 = await axios.get(`loan/${id_loan}/print/plan`)
+            printJS({
+              printable: res2.data.content,
+              type: res2.data.type,
+              file_name: res2.data.file_name,
+              base64: true
+            })
+      } catch (e) {
+        console.log(e)
+        this.toastr.error("Ocurrió un error en la reimpresion del trámite...")
         this.loading_table = false
       }
       this.loading_table = false
