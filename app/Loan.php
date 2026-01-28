@@ -463,7 +463,7 @@ class Loan extends Model
                 $quota->penal_payment = LoanPayment::interest_by_days($penal_days, $this->interest->penal_interest, $this->balance, $denominator);
         }else{
             $penal_payment = 0;
-            $quota->penal_payment = $this->get_penal_payment($estimated_date);
+            return $quota->penal_payment = $this->get_penal_payment($estimated_date);
         }
         if ($quota->penal_payment >= 0) {
             if ($amount >= $quota->penal_payment) {
@@ -1782,7 +1782,7 @@ class Loan extends Model
             return false;
     }
 
-    public function payments_defaulted_by_quota($date)
+    /*public function payments_defaulted_by_quota($date)
     {
         $plan_payments = $this->loan_plan
             ->where('estimated_date', '<', Carbon::parse($date)->format('Y-m-d'))
@@ -1827,11 +1827,39 @@ class Loan extends Model
             }
         }
         return $payments_defaulted;
+    }*/
+
+    public function payments_defaulted_by_quota($date)
+    {
+        $plan_payments = $this->loan_plan
+            ->where('estimated_date', '<', Carbon::parse($date)->format('Y-m-d'))
+            ->sortBy('quota_number');
+        $payments_defaulted = [];
+        $capital_paid = $this->capital_paid();
+        $amount = 0;
+        foreach($plan_payments as $plan_payment)
+        {
+            $amount = $capital_paid - $plan_payment->capital;
+            if($amount < 0)
+            {
+                $diff_amount = $plan_payment->capital - $capital_paid;
+                $days = Carbon::parse($plan_payment->estimated_date)->diffInDays(Carbon::parse($date));
+                $payments_defaulted[] = (object)[
+                    'quota' => $plan_payment->quota_number,
+                    'days' => $days,
+                    'diff_amount' => round($diff_amount,2),
+                ];
+                $capital_paid = 0;
+            }else{
+                $capital_paid -= $plan_payment->capital;
+            }
+        }
+        return $payments_defaulted;
     }
 
     public function get_penal_payment($date)
     {
-        $payments_defaulted = $this->payments_defaulted_by_quota($date);
+        return $payments_defaulted = $this->payments_defaulted_by_quota($date);
         $penal_payment = 0;
         $denominator = $this->loan_procedure->loan_global_parameter->denominator;
         if(count($payments_defaulted) > 0)
@@ -1843,5 +1871,10 @@ class Loan extends Model
             }
         }
         return $penal_payment;
+    }
+
+    public function capital_paid()
+    {
+        return $this->payments->where('state_id', LoanPaymentState::where('name', 'Pagado')->first()->id)->sum('capital_payment');
     }
 }
