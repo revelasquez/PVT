@@ -2745,7 +2745,7 @@ class LoanController extends Controller
         $procedure_modality = $loan->modality;
         $file_title =implode('_', ['FORM','TRAMITE', $procedure_modality->shortened, $loan->code,Carbon::now()->format('m/d')]);
         $data_loan_guarantor = collect();
-        $titular_guarantors = LoanGuarantor::where('loan_id', $loan->id)->get();
+        $titular_guarantors = LoanGuarantor::where('loan_id', $loan->id)->orderby('affiliate_id')->get();
         foreach($titular_guarantors as $titular_guarantor)
         {
             if($titular_guarantor->type != 'affiliates'){
