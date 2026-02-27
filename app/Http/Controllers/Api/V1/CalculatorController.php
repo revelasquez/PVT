@@ -518,7 +518,7 @@ class CalculatorController extends Controller
             $payable_liquid_average = $contributions->avg('payable_liquid');
             $quota_calculated = $request->quota_calculated_total_lender / $quantity_guarantors;
             $contribution_first = $contributions->first();
-            $total_bonuses = $contribution_first['position_bonus']+$contribution_first['border_bonus']+$contribution_first['public_security_bonus']+$contribution_first['east_bonus'];
+            $total_bonuses = $contribution_first['position_bonus']+$contribution_first['border_bonus']+$contribution_first['public_security_bonus']+$contribution_first['east_bonus']+$contribution_first['dignity_rent'];
             $liquid_qualification_calculated = $this->liquid_qualification($type, $payable_liquid_average, $total_bonuses, $affiliate);
             $total_guarantees = 0;
             $eval_quota = $request->quota_calculated_total_lender * $eval_percentage;
